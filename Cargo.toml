@@ -26,14 +26,16 @@ maintenance = { status = "passively-maintained" }
 
 [features]
 bench_private = [] # for enabling nightly-only feature(test) on the main crate to allow benchmarking private code
-serialization = [ "flate2", "nom", "base64" ]
+serialization = [ "libflate", "nom", "base64" ]
 sync = [ "crossbeam-channel" ]
 default = [ "serialization", "sync" ]
+flate = [ "flate2" ]
 
 [dependencies]
 num-traits = "0.2"
 byteorder = "1.0.0"
 flate2 = { version = "1.0", optional = true }
+libflate = { version = "0.1", optional = true }
 nom = { version = "5.0", optional = true }
 base64 = { version = "0.10", optional = true }
 crossbeam-channel = { version = "0.3", optional = true }

@@ -1,7 +1,10 @@
 use super::{V2_COMPRESSED_COOKIE, V2_COOKIE};
 use crate::{Counter, Histogram, RestatState};
 use byteorder::{BigEndian, ReadBytesExt};
+#[cfg(feature = "flate")]
 use flate2::read::ZlibDecoder;
+#[cfg(not(feature = "flate"))]
+use libflate::gzip::Decoder;
 use num_traits::ToPrimitive;
 use std;
 use std::io::{self, Cursor, ErrorKind, Read};
@@ -83,7 +86,10 @@ impl Deserializer {
             .ok_or(DeserializeError::UsizeTypeTooSmall)?;
 
         // TODO reuse deflate buf, or switch to lower-level flate2::Decompress
+        #[cfg(feature = "flate")]
         let mut deflate_reader = ZlibDecoder::new(reader.take(payload_len as u64));
+        #[cfg(not(feature = "flate"))]
+        let mut deflate_reader = Decoder::new(reader.take(payload_len as u64))?;
         let inner_cookie = deflate_reader.read_u32::<BigEndian>()?;
         if inner_cookie != V2_COOKIE {
             return Err(DeserializeError::InvalidCookie);

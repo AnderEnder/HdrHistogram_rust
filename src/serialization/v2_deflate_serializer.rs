@@ -3,8 +3,7 @@ use super::{Serializer, V2_COMPRESSED_COOKIE};
 use crate::core::counter::Counter;
 use crate::Histogram;
 use byteorder::{BigEndian, WriteBytesExt};
-use flate2::write::ZlibEncoder;
-use flate2::Compression;
+
 use std;
 use std::io::{ErrorKind, Write};
 
@@ -90,11 +89,24 @@ impl Serializer for V2DeflateSerializer {
         // data instead of shrinking it (which we cannot really predict), writing to compressed_buf
         // could panic as Vec overflows its internal `usize`.
 
+        #[cfg(feature = "flate")]
         {
+            use flate2::write::ZlibEncoder;
+            use flate2::Compression;
+
             // TODO reuse deflate buf, or switch to lower-level flate2::Compress
             let mut compressor = ZlibEncoder::new(&mut self.compressed_buf, Compression::default());
             compressor.write_all(&self.uncompressed_buf[0..uncompressed_len])?;
             let _ = compressor.finish()?;
+        }
+
+        #[cfg(not(feature = "flate"))]
+        {
+            use libflate::zlib::Encoder;
+
+            let mut compressor = Encoder::new(&mut self.compressed_buf)?;
+            compressor.write_all(&self.uncompressed_buf[0..uncompressed_len])?;
+            let _ = compressor.finish().into_result()?;
         }
 
         // fill in length placeholder. Won't underflow since length is always at least 8, and won't

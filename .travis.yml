@@ -14,6 +14,7 @@ if: type != push OR (tag IS blank AND branch = master)
 
 script:
   - cargo test --verbose
+  - cargo test --features flate
   - cargo test --verbose --no-default-features --no-run
 
 jobs:
