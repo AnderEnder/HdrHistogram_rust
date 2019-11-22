@@ -62,7 +62,7 @@ jobs:
       services:
         - docker
       script:
-        - docker run --security-opt seccomp=unconfined -v "$PWD:/volume" xd009642/tarpaulin:latest sh -c "cargo tarpaulin --out Xml"
+        - docker run --security-opt seccomp=unconfined -v "$PWD:/volume" xd009642/tarpaulin:latest sh -c "cargo tarpaulin -v --out Xml"
         - bash <(curl -s https://codecov.io/bash)
 stages:
  - check
